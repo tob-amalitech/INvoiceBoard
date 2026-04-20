@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Water Bill Splitter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f4efe6;
+    --ink: #1a1915;
+    --ink-soft: #4a4740;
+    --paper: #fbf8f1;
+    --water: #2563a8;
+    --water-deep: #143b68;
+    --accent: #c2410c;
+    --line: #1a1915;
+    --shadow: 0 2px 0 var(--line), 4px 6px 0 rgba(26,25,21,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* Subtle paper grain */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(rgba(26,25,21,0.04) 1px, transparent 1px),
+      radial-gradient(rgba(26,25,21,0.03) 1px, transparent 1px);
+    background-size: 3px 3px, 7px 7px;
+    background-position: 0 0, 1px 1px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 2;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 28px 80px;
+  }
+
+  /* Masthead */
+  header.masthead {
+    border-top: 3px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 12px 0 10px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  header.masthead .date { color: var(--ink-soft); }
+  header.masthead .issue { color: var(--accent); font-weight: 600; }
+
+  h1.title {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 144;
+    font-weight: 300;
+    font-size: clamp(48px, 9vw, 96px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin: 36px 0 8px;
+  }
+  h1.title em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--water-deep);
+  }
+
+  .deck {
+    font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 540px;
+    margin-bottom: 40px;
+    font-style: italic;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+    border-radius: 2px;
+    padding: 28px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+
+  .card-label {
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    background: var(--bg);
+    padding: 0 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    border-bottom: 1px dashed var(--ink);
+    padding-bottom: 10px;
+  }
+  .section-head h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 26px;
+    letter-spacing: -0.01em;
+  }
+  .section-head .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+
+  /* Inputs */
+  label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  input[type="text"], input[type="number"], input[type="tel"], textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid var(--ink);
+    padding: 8px 2px;
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, textarea:focus { border-bottom-color: var(--water); }
+
+  textarea {
+    border: 1.5px solid var(--ink);
+    padding: 10px;
+    resize: vertical;
+    min-height: 90px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .bill-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 560px) {
+    .bill-row { grid-template-columns: 1fr; }
+  }
+
+  .currency-input {
+    position: relative;
+  }
+  .currency-input::before {
+    content: "GH₵";
+    position: absolute;
+    left: 0;
+    bottom: 9px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .currency-input input { padding-left: 38px; }
+
+  /* Tenant rows */
+  .tenants-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .tenant-row {
+    display: grid;
+    grid-template-columns: 24px 1.4fr 1.2fr 0.7fr 32px;
+    gap: 12px;
+    align-items: end;
+    padding: 10px 0;
+    border-bottom: 1px dotted rgba(26,25,21,0.25);
+  }
+  @media (max-width: 640px) {
+    .tenant-row {
+      grid-template-columns: 24px 1fr 32px;
+      grid-template-areas:
+        "num name del"
+        ". phone phone"
+        ". people people";
+      gap: 8px;
+    }
+    .tenant-row .f-num { grid-area: num; }
+    .tenant-row .f-name { grid-area: name; }
+    .tenant-row .f-phone { grid-area: phone; }
+    .tenant-row .f-people { grid-area: people; }
+    .tenant-row .f-del { grid-area: del; }
+  }
+
+  .row-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--ink-soft);
+    padding-bottom: 10px;
+  }
+
+  .btn-del {
+    background: transparent;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    margin-bottom: 6px;
+  }
+  .btn-del:hover {
+    background: var(--accent);
+    color: var(--paper);
+    border-color: var(--accent);
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  button.btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 12px 20px;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: transform 0.12s, box-shadow 0.12s;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  button.btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  button.btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+
+  button.btn.primary {
+    background: var(--water-deep);
+    color: var(--paper);
+    border-color: var(--water-deep);
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  button.btn.primary:hover {
+    background: var(--water);
+    border-color: var(--water);
+  }
+
+  /* Results */
+  #results { display: none; }
+  #results.visible { display: block; animation: rise 0.4s ease-out; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+    padding: 16px 0;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+  @media (max-width: 560px) {
+    .summary-grid { grid-template-columns: 1fr; gap: 14px; }
+  }
+
+  .stat .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+  .stat .stat-val {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 26px;
+    letter-spacing: -0.01em;
+  }
+  .stat .stat-val.accent { color: var(--water-deep); }
+
+  .split-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    padding: 20px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    margin-bottom: 14px;
+    position: relative;
+  }
+
+  .split-item .tenant-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .split-item .name {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+  .split-item .phone {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .split-item .breakdown {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+    margin-top: 6px;
+  }
+
+  .amount-block { text-align: right; }
+  .amount-block .amt {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 30px;
+    color: var(--water-deep);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .amount-block .pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    letter-spacing: 0.1em;
+  }
+
+  .sms-preview {
+    grid-column: 1 / -1;
+    margin-top: 14px;
+    padding: 14px;
+    background: var(--bg);
+    border: 1px dashed var(--ink);
+    font-size: 14px;
+    line-height: 1.55;
+    font-family: 'Fraunces', serif;
+    white-space: pre-wrap;
+  }
+
+  .send-row {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  a.btn-link {
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 8px 14px;
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+  .btn-small:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .btn-small.sent {
+    background: var(--water-deep);
+    color: var(--paper);
+    border-color: var(--water-deep);
+  }
+
+  .error-msg {
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    margin-top: 12px;
+    min-height: 18px;
+  }
+
+  .global-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--ink);
+  }
+  .global-actions .btn {
+    flex: 1;
+    min-width: 160px;
+  }
+  .btn.outline {
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .btn.outline:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* Decorative water icon */
+  .droplet {
+    display: inline-block;
+    width: 14px;
+    height: 18px;
+    background: var(--water);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    transform: rotate(45deg) translateY(-2px);
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  footer.foot {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <span class="date" id="todayDate">—</span>
+    <span class="issue">No. 01 · Household Ledger</span>
+    <span>Water · Monthly</span>
+  </header>
+
+  <h1 class="title">The Water <em>Bill,</em><br>Evenly Poured.</h1>
+  <p class="deck">Enter the month's total, list who's drinking from the tap, and let the arithmetic pour itself — proportional to heads under each roof.</p>
+
+  <!-- BILL INPUT -->
+  <section class="card">
+    <span class="card-label">§ 01 · The Bill</span>
+    <div class="section-head">
+      <h2>This Month's Total</h2>
+      <span class="meta">Enter in GH₵</span>
+    </div>
+    <div class="bill-row">
+      <div>
+        <label for="billAmount">Total water bill</label>
+        <div class="currency-input">
+          <input type="number" id="billAmount" step="0.01" min="0" placeholder="0.00" />
+        </div>
+      </div>
+      <div>
+        <label for="billPeriod">Billing period (optional)</label>
+        <input type="text" id="billPeriod" placeholder="e.g. April 2026" />
+      </div>
+    </div>
+  </section>
+
+  <!-- TENANTS -->
+  <section class="card">
+    <span class="card-label">§ 02 · The Tenants</span>
+    <div class="section-head">
+      <h2>Who's in the House</h2>
+      <span class="meta" id="tenantCountMeta">0 units</span>
+    </div>
+
+    <div class="tenants-list" id="tenantsList"></div>
+
+    <div class="btn-row">
+      <button class="btn" id="addTenantBtn">+ Add Tenant</button>
+      <button class="btn primary" id="splitBtn">Split the Bill →</button>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="card" id="results">
+    <span class="card-label">§ 03 · The Verdict</span>
+    <div class="section-head">
+      <h2>The Split</h2>
+      <span class="meta">Proportional · By Headcount</span>
+    </div>
+
+    <div class="summary-grid">
+      <div class="stat">
+        <div class="stat-label">Total Bill</div>
+        <div class="stat-val" id="sumTotal">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Total Occupants</div>
+        <div class="stat-val" id="sumPeople">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Rate Per Person</div>
+        <div class="stat-val accent" id="sumPerPerson">—</div>
+      </div>
+    </div>
+
+    <div id="splitList"></div>
+
+    <div class="global-actions">
+      <button class="btn primary" id="downloadPdfBtn">⬇ Download as PDF</button>
+      <button class="btn outline" id="sharePdfBtn">↗ Share Statement</button>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>End of ledger</span>
+    <span><span class="droplet"></span> Paid in drops, not drama</span>
+  </footer>
+
+</div>
+
+<script>
+  // Set date
+  const today = new Date();
+  document.getElementById('todayDate').textContent = today.toLocaleDateString('en-GB', {
+    day: '2-digit', month: 'short', year: 'numeric'
+  }).toUpperCase();
+
+  let tenantIdCounter = 0;
+  let lastSplit = null; // stores the most recent computed split for PDF/share
+  const tenantsList = document.getElementById('tenantsList');
+  const countMeta = document.getElementById('tenantCountMeta');
+
+  function updateCountMeta() {
+    const n = tenantsList.children.length;
+    countMeta.textContent = n === 1 ? '1 unit' : `${n} units`;
+    // renumber
+    [...tenantsList.children].forEach((row, i) => {
+      const num = row.querySelector('.row-num');
+      if (num) num.textContent = String(i + 1).padStart(2, '0');
+    });
+  }
+
+  function addTenantRow(data = {}) {
+    tenantIdCounter++;
+    const row = document.createElement('div');
+    row.className = 'tenant-row';
+    row.dataset.id = tenantIdCounter;
+    row.innerHTML = `
+      <div class="row-num f-num">—</div>
+      <div class="f-name">
+        <label>Name</label>
+        <input type="text" class="t-name" placeholder="e.g. Ama Boateng" value="${data.name || ''}" />
+      </div>
+      <div class="f-phone">
+        <label>Phone</label>
+        <input type="tel" class="t-phone" placeholder="+233 24 000 0000" value="${data.phone || ''}" />
+      </div>
+      <div class="f-people">
+        <label>People</label>
+        <input type="number" class="t-people" min="1" step="1" placeholder="1" value="${data.people || ''}" />
+      </div>
+      <button class="btn-del f-del" title="Remove tenant" aria-label="Remove tenant">×</button>
+    `;
+    row.querySelector('.btn-del').addEventListener('click', () => {
+      row.remove();
+      updateCountMeta();
+    });
+    tenantsList.appendChild(row);
+    updateCountMeta();
+  }
+
+  // Start with 2 empty rows
+  addTenantRow();
+  addTenantRow();
+
+  document.getElementById('addTenantBtn').addEventListener('click', () => addTenantRow());
+
+  // Split logic
+  document.getElementById('splitBtn').addEventListener('click', splitBill);
+
+  function formatGHS(n) {
+    return 'GH₵ ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function splitBill() {
+    const errEl = document.getElementById('errorMsg');
+    errEl.textContent = '';
+
+    const bill = parseFloat(document.getElementById('billAmount').value);
+    const period = document.getElementById('billPeriod').value.trim();
+
+    if (!bill || bill <= 0) {
+      errEl.textContent = '⚠ Please enter a valid bill amount.';
+      return;
+    }
+
+    const rows = [...tenantsList.children];
+    const tenants = [];
+
+    for (const row of rows) {
+      const name = row.querySelector('.t-name').value.trim();
+      const phone = row.querySelector('.t-phone').value.trim();
+      const people = parseInt(row.querySelector('.t-people').value);
+      if (!name || !phone || !people || people < 1) {
+        errEl.textContent = '⚠ Every tenant needs a name, phone, and at least 1 person.';
+        return;
+      }
+      tenants.push({ name, phone, people });
+    }
+
+    if (tenants.length < 2) {
+      errEl.textContent = '⚠ Add at least 2 tenants to split a bill.';
+      return;
+    }
+
+    const totalPeople = tenants.reduce((s, t) => s + t.people, 0);
+    const perPerson = bill / totalPeople;
+
+    // Compute shares with rounding that sums back to the total
+    let running = 0;
+    tenants.forEach((t, i) => {
+      if (i < tenants.length - 1) {
+        t.share = Math.round(t.people * perPerson * 100) / 100;
+        running += t.share;
+      } else {
+        // Last tenant absorbs any rounding remainder
+        t.share = Math.round((bill - running) * 100) / 100;
+      }
+      t.pct = (t.people / totalPeople) * 100;
+    });
+
+    renderResults(bill, totalPeople, perPerson, tenants, period);
+    lastSplit = { bill, totalPeople, perPerson, tenants, period, generatedAt: new Date() };
+  }
+
+  function renderResults(bill, totalPeople, perPerson, tenants, period) {
+    document.getElementById('sumTotal').textContent = formatGHS(bill);
+    document.getElementById('sumPeople').textContent = totalPeople;
+    document.getElementById('sumPerPerson').textContent = formatGHS(perPerson);
+
+    const list = document.getElementById('splitList');
+    list.innerHTML = '';
+
+    tenants.forEach(t => {
+      const periodLine = period ? `for ${period} ` : '';
+      const smsText =
+`Hi ${t.name.split(' ')[0]}, here's your water bill ${periodLine}breakdown:
+
+Total bill: ${formatGHS(bill)}
+Your share: ${formatGHS(t.share)}
+(${t.people} ${t.people === 1 ? 'person' : 'people'} × ${formatGHS(perPerson)}/person)
+
+Kindly settle when you can. Thanks!`;
+
+      const cleanPhone = t.phone.replace(/\s+/g, '');
+      const encoded = encodeURIComponent(smsText);
+
+      const item = document.createElement('div');
+      item.className = 'split-item';
+      item.innerHTML = `
+        <div>
+          <div class="tenant-head">
+            <span class="name">${escapeHtml(t.name)}</span>
+            <span class="phone">${escapeHtml(t.phone)}</span>
+          </div>
+          <div class="breakdown">${t.people} ${t.people === 1 ? 'person' : 'people'} · ${t.pct.toFixed(1)}% of bill</div>
+        </div>
+        <div class="amount-block">
+          <div class="amt">${formatGHS(t.share)}</div>
+          <div class="pct">${t.pct.toFixed(1)}%</div>
+        </div>
+        <div class="sms-preview">${escapeHtml(smsText)}</div>
+        <div class="send-row">
+          <a class="btn-link" href="sms:${cleanPhone}?body=${encoded}">
+            <button class="btn-small">📱 Open in SMS</button>
+          </a>
+          <a class="btn-link" href="https://wa.me/${cleanPhone.replace(/^\+/, '')}?text=${encoded}" target="_blank" rel="noopener">
+            <button class="btn-small">💬 WhatsApp</button>
+          </a>
+          <button class="btn-small copy-btn" data-text="${escapeAttr(smsText)}">📋 Copy Text</button>
+        </div>
+      `;
+      list.appendChild(item);
+    });
+
+    // Wire up copy buttons
+    list.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(btn.dataset.text);
+          const orig = btn.textContent;
+          btn.textContent = '✓ Copied';
+          btn.classList.add('sent');
+          setTimeout(() => {
+            btn.textContent = orig;
+            btn.classList.remove('sent');
+          }, 1600);
+        } catch (e) {
+          alert('Could not copy. Please copy the text manually from the preview above.');
+        }
+      });
+    });
+
+    const results = document.getElementById('results');
+    results.classList.add('visible');
+    results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+  function escapeAttr(s) {
+    return escapeHtml(s).replace(/\n/g, '&#10;');
+  }
+
+  // ---------- PDF Generation ----------
+  function buildPdf() {
+    if (!lastSplit) return null;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+    const pageW = doc.internal.pageSize.getWidth();
+    const marginX = 48;
+    let y = 60;
+
+    // Masthead bar
+    doc.setDrawColor(26, 25, 21);
+    doc.setLineWidth(2);
+    doc.line(marginX, y - 20, pageW - marginX, y - 20);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(74, 71, 64);
+    const dateStr = lastSplit.generatedAt.toLocaleDateString('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    }).toUpperCase();
+    doc.text(dateStr, marginX, y - 6);
+    doc.setTextColor(194, 65, 12);
+    doc.text('HOUSEHOLD LEDGER · No. 01', pageW / 2, y - 6, { align: 'center' });
+    doc.setTextColor(74, 71, 64);
+    doc.text('WATER · MONTHLY', pageW - marginX, y - 6, { align: 'right' });
+
+    doc.setLineWidth(0.5);
+    doc.line(marginX, y, pageW - marginX, y);
+
+    // Title
+    y += 50;
+    doc.setTextColor(20, 59, 104);
+    doc.setFont('times', 'italic');
+    doc.setFontSize(38);
+    doc.text('Water Bill Statement', marginX, y);
+
+    // Period
+    y += 24;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(74, 71, 64);
+    const periodLine = lastSplit.period ? `Billing period: ${lastSplit.period}` : 'Monthly water bill';
+    doc.text(periodLine, marginX, y);
+
+    // Summary box
+    y += 30;
+    doc.setDrawColor(26, 25, 21);
+    doc.setLineWidth(1);
+    doc.rect(marginX, y, pageW - marginX * 2, 70);
+
+    const colW = (pageW - marginX * 2) / 3;
+    const labels = ['TOTAL BILL', 'TOTAL OCCUPANTS', 'RATE / PERSON'];
+    const values = [
+      formatGHS(lastSplit.bill),
+      String(lastSplit.totalPeople),
+      formatGHS(lastSplit.perPerson)
+    ];
+
+    labels.forEach((lbl, i) => {
+      const cx = marginX + colW * i + colW / 2;
+      doc.setFontSize(8);
+      doc.setTextColor(74, 71, 64);
+      doc.setFont('helvetica', 'normal');
+      doc.text(lbl, cx, y + 22, { align: 'center' });
+
+      doc.setFontSize(18);
+      doc.setTextColor(i === 2 ? 20 : 26, i === 2 ? 59 : 25, i === 2 ? 104 : 21);
+      doc.setFont('times', 'normal');
+      doc.text(values[i], cx, y + 48, { align: 'center' });
+
+      // divider lines between columns
+      if (i < 2) {
+        doc.setDrawColor(26, 25, 21);
+        doc.setLineWidth(0.3);
+        doc.line(marginX + colW * (i + 1), y + 10, marginX + colW * (i + 1), y + 60);
+      }
+    });
+
+    y += 100;
+
+    // Section header: The Split
+    doc.setFont('times', 'normal');
+    doc.setFontSize(20);
+    doc.setTextColor(26, 25, 21);
+    doc.text('The Split', marginX, y);
+    doc.setFontSize(8);
+    doc.setTextColor(74, 71, 64);
+    doc.text('PROPORTIONAL · BY HEADCOUNT', pageW - marginX, y, { align: 'right' });
+
+    y += 6;
+    doc.setDrawColor(26, 25, 21);
+    doc.setLineWidth(0.5);
+    doc.line(marginX, y, pageW - marginX, y);
+    y += 20;
+
+    // Tenant rows
+    lastSplit.tenants.forEach((t, idx) => {
+      if (y > 720) {
+        doc.addPage();
+        y = 60;
+      }
+
+      // Row box
+      doc.setDrawColor(26, 25, 21);
+      doc.setLineWidth(0.5);
+      doc.rect(marginX, y, pageW - marginX * 2, 54);
+
+      // Index number
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(74, 71, 64);
+      doc.text(String(idx + 1).padStart(2, '0'), marginX + 12, y + 18);
+
+      // Name
+      doc.setFont('times', 'normal');
+      doc.setFontSize(16);
+      doc.setTextColor(26, 25, 21);
+      doc.text(t.name, marginX + 36, y + 22);
+
+      // Phone
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(74, 71, 64);
+      doc.text(t.phone, marginX + 36, y + 38);
+
+      // Breakdown
+      doc.setFontSize(8);
+      const peopleTxt = `${t.people} ${t.people === 1 ? 'person' : 'people'}  ·  ${t.pct.toFixed(1)}% of bill`;
+      doc.text(peopleTxt, marginX + 36, y + 48);
+
+      // Amount (right-aligned)
+      doc.setFont('times', 'normal');
+      doc.setFontSize(22);
+      doc.setTextColor(20, 59, 104);
+      doc.text(formatGHS(t.share), pageW - marginX - 12, y + 30, { align: 'right' });
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(74, 71, 64);
+      doc.text(`${t.pct.toFixed(1)}%`, pageW - marginX - 12, y + 44, { align: 'right' });
+
+      y += 68;
+    });
+
+    // Verification total
+    if (y > 700) { doc.addPage(); y = 60; }
+    y += 4;
+    doc.setDrawColor(26, 25, 21);
+    doc.setLineWidth(1);
+    doc.line(marginX, y, pageW - marginX, y);
+    y += 20;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(26, 25, 21);
+    doc.text('SUM OF SHARES', marginX, y);
+    const sumShares = lastSplit.tenants.reduce((s, t) => s + t.share, 0);
+    doc.setFont('times', 'normal');
+    doc.setFontSize(14);
+    doc.text(formatGHS(sumShares), pageW - marginX, y, { align: 'right' });
+
+    // Footer
+    const footerY = doc.internal.pageSize.getHeight() - 40;
+    doc.setDrawColor(26, 25, 21);
+    doc.setLineWidth(0.5);
+    doc.line(marginX, footerY - 10, pageW - marginX, footerY - 10);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(74, 71, 64);
+    doc.text('End of ledger', marginX, footerY);
+    doc.text(`Generated ${lastSplit.generatedAt.toLocaleString('en-GB')}`, pageW - marginX, footerY, { align: 'right' });
+
+    return doc;
+  }
+
+  function getPdfFilename() {
+    const period = lastSplit?.period ? lastSplit.period.replace(/[^a-z0-9]+/gi, '-') : 'statement';
+    return `water-bill-${period}.pdf`.toLowerCase();
+  }
+
+  document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+    const doc = buildPdf();
+    if (!doc) return;
+    doc.save(getPdfFilename());
+  });
+
+  document.getElementById('sharePdfBtn').addEventListener('click', async () => {
+    const doc = buildPdf();
+    if (!doc) return;
+    const filename = getPdfFilename();
+    const blob = doc.output('blob');
+    const file = new File([blob], filename, { type: 'application/pdf' });
+
+    // Try native share first (mobile / modern browsers)
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: 'Water Bill Statement',
+          text: `Water bill split${lastSplit.period ? ' for ' + lastSplit.period : ''} — total ${formatGHS(lastSplit.bill)}`
+        });
+        return;
+      } catch (e) {
+        if (e.name === 'AbortError') return; // user canceled
+      }
+    }
+
+    // Fallback: open PDF in new tab so user can share manually
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    alert('Sharing not supported in this browser. The PDF has opened in a new tab — download and share it from there.');
+  });
+</script>
+</body>
+</html>
