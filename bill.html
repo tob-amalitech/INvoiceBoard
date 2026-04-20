@@ -598,7 +598,60 @@
   let tenantIdCounter = 0;
   let lastSplit = null; // stores the most recent computed split for PDF/share
   const tenantsList = document.getElementById('tenantsList');
+  const STORAGE_KEY = 'waterBillData';
+
+  // Load data from localStorage
+  function loadFromStorage() {
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (!data) return;
+
+    try {
+      const parsed = JSON.parse(data);
+      if (parsed.billAmount) {
+        document.getElementById('billAmount').value = parsed.billAmount;
+      }
+      if (parsed.billPeriod) {
+        document.getElementById('billPeriod').value = parsed.billPeriod;
+      }
+      if (parsed.tenants && Array.isArray(parsed.tenants)) {
+        // Clear existing rows
+        tenantsList.innerHTML = '';
+        parsed.tenants.forEach(tenant => addTenantRow(tenant));
+        if (parsed.tenants.length === 0) {
+          // Add default empty rows if no tenants saved
+          addTenantRow();
+          addTenantRow();
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load saved data:', e);
+    }
+  }
+
+  // Save data to localStorage
+  function saveToStorage() {
+    const billAmount = document.getElementById('billAmount').value;
+    const billPeriod = document.getElementById('billPeriod').value;
+    const tenants = [...tenantsList.children].map(row => ({
+      name: row.querySelector('.t-name').value,
+      phone: row.querySelector('.t-phone').value,
+      people: row.querySelector('.t-people').value
+    }));
+
+    const data = { billAmount, billPeriod, tenants };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  // Debounced save function
+  let saveTimeout;
+  function debouncedSave() {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveToStorage, 500);
+  }
   const countMeta = document.getElementById('tenantCountMeta');
+
+  // Load saved data on page load
+  loadFromStorage();
 
   function updateCountMeta() {
     const n = tenantsList.children.length;
@@ -634,9 +687,15 @@
     row.querySelector('.btn-del').addEventListener('click', () => {
       row.remove();
       updateCountMeta();
+      debouncedSave();
     });
     tenantsList.appendChild(row);
     updateCountMeta();
+
+    // Attach input listeners for saving
+    row.querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', debouncedSave);
+    });
   }
 
   // Start with 2 empty rows
@@ -644,6 +703,10 @@
   addTenantRow();
 
   document.getElementById('addTenantBtn').addEventListener('click', () => addTenantRow());
+
+  // Attach listeners to bill inputs for saving
+  document.getElementById('billAmount').addEventListener('input', debouncedSave);
+  document.getElementById('billPeriod').addEventListener('input', debouncedSave);
 
   // Split logic
   document.getElementById('splitBtn').addEventListener('click', splitBill);
