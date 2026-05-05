@@ -315,13 +315,16 @@
   .summary-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    gap: 18px 24px;
     margin-bottom: 24px;
-    padding: 16px 0;
+    padding: 18px 0;
     border-top: 1px solid var(--ink);
     border-bottom: 1px solid var(--ink);
   }
-  @media (max-width: 560px) {
+  @media (max-width: 720px) {
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
     .summary-grid { grid-template-columns: 1fr; gap: 14px; }
   }
 
@@ -336,10 +339,55 @@
   .stat .stat-val {
     font-family: 'Fraunces', serif;
     font-weight: 400;
-    font-size: 26px;
+    font-size: 24px;
     letter-spacing: -0.01em;
+    line-height: 1.1;
   }
   .stat .stat-val.accent { color: var(--water-deep); }
+
+  .misc-stat .tilde {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--accent);
+    margin-right: 2px;
+  }
+  .misc-stat .misc-note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+    margin-top: 3px;
+  }
+  .misc-stat.positive .stat-val { color: #2d6a3f; }
+  .misc-stat.negative .stat-val { color: var(--accent); }
+  .misc-stat.zero .stat-val { color: var(--ink-soft); }
+
+  /* Adjustment line (~ original amount, beside rounded) */
+  .amount-block .adj {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    font-style: italic;
+  }
+  .amount-block .adj-tag {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-style: normal;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+  .amount-block .adj.pos .adj-tag {
+    background: rgba(45, 106, 63, 0.15);
+    color: #2d6a3f;
+  }
+  .amount-block .adj.neg .adj-tag {
+    background: rgba(194, 65, 12, 0.15);
+    color: var(--accent);
+  }
 
   .split-item {
     display: grid;
@@ -498,6 +546,205 @@
     flex-wrap: wrap;
     gap: 10px;
   }
+
+  /* History panel */
+  .history-empty {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 15px;
+    padding: 14px 0;
+  }
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .history-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto auto;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    border-radius: 2px;
+    transition: transform 0.12s, box-shadow 0.12s;
+  }
+  .history-item:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  @media (max-width: 640px) {
+    .history-item {
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas:
+        "num head amt"
+        "num meta meta"
+        "num actions actions";
+      gap: 6px 12px;
+    }
+    .history-item .h-num { grid-area: num; }
+    .history-item .h-head { grid-area: head; }
+    .history-item .h-amt { grid-area: amt; text-align: right; }
+    .history-item .h-meta { grid-area: meta; }
+    .history-item .h-actions { grid-area: actions; justify-self: end; display: flex; gap: 6px; }
+  }
+  .history-item .h-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  .history-item .h-head {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+  .history-item .h-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .history-item .h-amt {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    color: var(--water-deep);
+    text-align: right;
+  }
+  .history-item .h-misc {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    margin-top: 2px;
+  }
+  .history-item .h-misc.pos { color: #2d6a3f; }
+  .history-item .h-misc.neg { color: var(--accent); }
+  .history-item .h-misc.zero { color: var(--ink-soft); }
+  .history-item .h-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .icon-btn {
+    background: transparent;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    width: 30px;
+    height: 30px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    padding: 0;
+  }
+  .icon-btn:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .icon-btn.danger:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--paper);
+  }
+
+  /* Data management bar */
+  .data-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed rgba(26,25,21,0.3);
+  }
+  .data-bar .btn-tiny {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: 7px 12px;
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+  .data-bar .btn-tiny:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .data-bar .btn-tiny.danger:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .data-bar .save-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    align-self: center;
+    margin-left: auto;
+  }
+  .data-bar .save-status.flash {
+    color: #2d6a3f;
+    animation: flashFade 1.6s ease-out;
+  }
+  @keyframes flashFade {
+    0% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0.6; }
+  }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 25, 21, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .modal-backdrop.visible { display: flex; animation: fadeIn 0.2s; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--ink);
+    max-width: 460px;
+    width: 100%;
+    padding: 28px;
+    position: relative;
+  }
+  .modal h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+  .modal p {
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin-bottom: 20px;
+    line-height: 1.55;
+  }
+  .modal .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
 </style>
 </head>
 <body>
@@ -571,6 +818,15 @@
         <div class="stat-label">Rate Per Person</div>
         <div class="stat-val accent" id="sumPerPerson">—</div>
       </div>
+      <div class="stat">
+        <div class="stat-label">Total Collected</div>
+        <div class="stat-val" id="sumCollected">—</div>
+      </div>
+      <div class="stat misc-stat" id="miscStat">
+        <div class="stat-label"><span class="tilde">~</span> Miscellaneous</div>
+        <div class="stat-val" id="sumMisc">—</div>
+        <div class="misc-note">Rounding surplus / shortfall</div>
+      </div>
     </div>
 
     <div id="splitList"></div>
@@ -578,6 +834,27 @@
     <div class="global-actions">
       <button class="btn primary" id="downloadPdfBtn">⬇ Download as PDF</button>
       <button class="btn outline" id="sharePdfBtn">↗ Share Statement</button>
+      <button class="btn outline" id="saveToHistoryBtn">★ Save to History</button>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="card">
+    <span class="card-label">§ 04 · The Archive</span>
+    <div class="section-head">
+      <h2>Past Splits</h2>
+      <span class="meta" id="historyCountMeta">0 entries</span>
+    </div>
+    <div id="historyContent">
+      <div class="history-empty">No past splits yet — saved bills will appear here.</div>
+    </div>
+
+    <div class="data-bar">
+      <button class="btn-tiny" id="exportBtn">⬇ Export Backup</button>
+      <button class="btn-tiny" id="importBtn">⬆ Import Backup</button>
+      <input type="file" id="importFile" accept="application/json,.json" style="display:none" />
+      <button class="btn-tiny danger" id="clearAllBtn">✕ Clear All Data</button>
+      <span class="save-status" id="saveStatus">—</span>
     </div>
   </section>
 
@@ -586,6 +863,18 @@
     <span><span class="droplet"></span> Paid in drops, not drama</span>
   </footer>
 
+</div>
+
+<!-- Confirmation modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3 id="modalTitle">Confirm</h3>
+    <p id="modalBody">Are you sure?</p>
+    <div class="modal-actions">
+      <button class="btn outline" id="modalCancel">Cancel</button>
+      <button class="btn primary" id="modalConfirm">Confirm</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -598,60 +887,62 @@
   let tenantIdCounter = 0;
   let lastSplit = null; // stores the most recent computed split for PDF/share
   const tenantsList = document.getElementById('tenantsList');
-  const STORAGE_KEY = 'waterBillData';
+  const countMeta = document.getElementById('tenantCountMeta');
 
-  // Load data from localStorage
-  function loadFromStorage() {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) return;
+  // ---------- Storage ----------
+  const STORAGE_KEY = 'waterBillSplitter.v1';
+  const STORAGE_VERSION = 1;
 
+  function loadStore() {
     try {
-      const parsed = JSON.parse(data);
-      if (parsed.billAmount) {
-        document.getElementById('billAmount').value = parsed.billAmount;
-      }
-      if (parsed.billPeriod) {
-        document.getElementById('billPeriod').value = parsed.billPeriod;
-      }
-      if (parsed.tenants && Array.isArray(parsed.tenants)) {
-        // Clear existing rows
-        tenantsList.innerHTML = '';
-        parsed.tenants.forEach(tenant => addTenantRow(tenant));
-        if (parsed.tenants.length === 0) {
-          // Add default empty rows if no tenants saved
-          addTenantRow();
-          addTenantRow();
-        }
-      }
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { version: STORAGE_VERSION, tenants: [], history: [] };
+      const parsed = JSON.parse(raw);
+      return {
+        version: parsed.version || STORAGE_VERSION,
+        tenants: Array.isArray(parsed.tenants) ? parsed.tenants : [],
+        history: Array.isArray(parsed.history) ? parsed.history : []
+      };
     } catch (e) {
       console.warn('Failed to load saved data:', e);
+      return { version: STORAGE_VERSION, tenants: [], history: [] };
     }
   }
 
-  // Save data to localStorage
-  function saveToStorage() {
-    const billAmount = document.getElementById('billAmount').value;
-    const billPeriod = document.getElementById('billPeriod').value;
-    const tenants = [...tenantsList.children].map(row => ({
-      name: row.querySelector('.t-name').value,
-      phone: row.querySelector('.t-phone').value,
-      people: row.querySelector('.t-people').value
-    }));
-
-    const data = { billAmount, billPeriod, tenants };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  function saveStore(store) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+      flashSaveStatus('✓ Saved');
+      return true;
+    } catch (e) {
+      console.error('Failed to save:', e);
+      flashSaveStatus('⚠ Save failed', true);
+      return false;
+    }
   }
 
-  // Debounced save function
-  let saveTimeout;
-  function debouncedSave() {
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(saveToStorage, 500);
+  function flashSaveStatus(text, isError = false) {
+    const el = document.getElementById('saveStatus');
+    el.textContent = text;
+    el.classList.remove('flash');
+    void el.offsetWidth; // restart animation
+    el.classList.add('flash');
+    if (isError) el.style.color = 'var(--accent)';
+    else el.style.color = '';
   }
-  const countMeta = document.getElementById('tenantCountMeta');
 
-  // Load saved data on page load
-  loadFromStorage();
+  let store = loadStore();
+
+  function persistTenantsFromUI() {
+    const rows = [...tenantsList.children];
+    const tenants = rows.map(row => ({
+      name: row.querySelector('.t-name').value.trim(),
+      phone: row.querySelector('.t-phone').value.trim(),
+      people: parseInt(row.querySelector('.t-people').value) || 0
+    })).filter(t => t.name || t.phone || t.people); // skip fully empty rows
+    store.tenants = tenants;
+    saveStore(store);
+  }
 
   function updateCountMeta() {
     const n = tenantsList.children.length;
@@ -672,11 +963,11 @@
       <div class="row-num f-num">—</div>
       <div class="f-name">
         <label>Name</label>
-        <input type="text" class="t-name" placeholder="e.g. Ama Boateng" value="${data.name || ''}" />
+        <input type="text" class="t-name" placeholder="e.g. Ama Boateng" value="${escapeAttr(data.name || '')}" />
       </div>
       <div class="f-phone">
         <label>Phone</label>
-        <input type="tel" class="t-phone" placeholder="+233 24 000 0000" value="${data.phone || ''}" />
+        <input type="tel" class="t-phone" placeholder="+233 24 000 0000" value="${escapeAttr(data.phone || '')}" />
       </div>
       <div class="f-people">
         <label>People</label>
@@ -687,32 +978,72 @@
     row.querySelector('.btn-del').addEventListener('click', () => {
       row.remove();
       updateCountMeta();
-      debouncedSave();
+      persistTenantsFromUI();
+    });
+    // Auto-save on input change (debounced)
+    row.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', debouncedPersist);
     });
     tenantsList.appendChild(row);
     updateCountMeta();
-
-    // Attach input listeners for saving
-    row.querySelectorAll('input').forEach(input => {
-      input.addEventListener('input', debouncedSave);
-    });
   }
 
-  // Start with 2 empty rows
-  addTenantRow();
-  addTenantRow();
+  // Debounce helper for save-on-input
+  let persistTimer = null;
+  function debouncedPersist() {
+    clearTimeout(persistTimer);
+    persistTimer = setTimeout(persistTenantsFromUI, 400);
+  }
 
-  document.getElementById('addTenantBtn').addEventListener('click', () => addTenantRow());
+  // Load saved tenants OR start with 2 empty rows
+  if (store.tenants && store.tenants.length > 0) {
+    store.tenants.forEach(t => addTenantRow(t));
+  } else {
+    addTenantRow();
+    addTenantRow();
+  }
 
-  // Attach listeners to bill inputs for saving
-  document.getElementById('billAmount').addEventListener('input', debouncedSave);
-  document.getElementById('billPeriod').addEventListener('input', debouncedSave);
+  document.getElementById('addTenantBtn').addEventListener('click', () => {
+    addTenantRow();
+    persistTenantsFromUI();
+  });
 
   // Split logic
   document.getElementById('splitBtn').addEventListener('click', splitBill);
 
   function formatGHS(n) {
     return 'GH₵ ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // Rounds a tenant's share to a friendly cash-denomination amount per landlord's rule:
+  //  - Clean multiples of 5 (90.00, 95.00) → keep as-is
+  //  - Exact .5 on a multiple of 5 (90.50, 95.50, 100.50) → round DOWN to that 5
+  //  - Otherwise look at the integer's ones-digit (mod 10):
+  //      1,2,3,4,7,8,9 → round UP to next 5
+  //      6 → round DOWN to previous 5
+  //  Examples: 91→95, 94→95, 96→95, 97→100, 99→100, 90.5→90, 95.5→95, 100.5→100
+  function roundTenantAmount(amount) {
+    if (amount <= 0) return 0;
+
+    // Exact multiple of 5? keep.
+    if (Math.abs(amount - Math.round(amount / 5) * 5) < 0.005) {
+      return Math.round(amount / 5) * 5;
+    }
+    // Exact .5 sitting on a multiple of 5 (90.5, 95.5, 100.5) → round down to that 5
+    const floorFive = Math.floor(amount / 5) * 5;
+    if (Math.abs(amount - (floorFive + 0.5)) < 0.005) {
+      return floorFive;
+    }
+
+    // Otherwise, decide by the rounded integer's ones digit (mod 10)
+    const intPart = Math.round(amount);
+    const onesMod10 = intPart % 10;
+    const prevFive = Math.floor(intPart / 5) * 5;
+    const nextFive = prevFive + 5;
+
+    if (onesMod10 === 0 || onesMod10 === 5) return intPart;
+    if (onesMod10 === 6) return prevFive;
+    return nextFive; // 1,2,3,4,7,8,9 round up
   }
 
   function splitBill() {
@@ -749,7 +1080,7 @@
     const totalPeople = tenants.reduce((s, t) => s + t.people, 0);
     const perPerson = bill / totalPeople;
 
-    // Compute shares with rounding that sums back to the total
+    // Compute raw shares with rounding that sums back to the total
     let running = 0;
     tenants.forEach((t, i) => {
       if (i < tenants.length - 1) {
@@ -760,33 +1091,64 @@
         t.share = Math.round((bill - running) * 100) / 100;
       }
       t.pct = (t.people / totalPeople) * 100;
+
+      // Now apply the cash-denomination rounding for what tenant actually pays
+      t.rounded = roundTenantAmount(t.share);
+      t.adjustment = +(t.rounded - t.share).toFixed(2); // + means tenant pays more, - means less
     });
 
-    renderResults(bill, totalPeople, perPerson, tenants, period);
-    lastSplit = { bill, totalPeople, perPerson, tenants, period, generatedAt: new Date() };
+    // Miscellaneous: total adjustment = (sum of rounded) - (actual bill)
+    // Positive = landlord collects extra (good for him); negative = shortfall
+    const totalRounded = tenants.reduce((s, t) => s + t.rounded, 0);
+    const miscellaneous = +(totalRounded - bill).toFixed(2);
+
+    renderResults(bill, totalPeople, perPerson, tenants, period, miscellaneous, totalRounded);
+    lastSplit = { bill, totalPeople, perPerson, tenants, period, miscellaneous, totalRounded, generatedAt: new Date() };
   }
 
-  function renderResults(bill, totalPeople, perPerson, tenants, period) {
+  function renderResults(bill, totalPeople, perPerson, tenants, period, miscellaneous, totalRounded) {
     document.getElementById('sumTotal').textContent = formatGHS(bill);
     document.getElementById('sumPeople').textContent = totalPeople;
     document.getElementById('sumPerPerson').textContent = formatGHS(perPerson);
+
+    // Update miscellaneous in summary
+    const miscEl = document.getElementById('sumMisc');
+    const miscWrap = document.getElementById('miscStat');
+    if (Math.abs(miscellaneous) < 0.005) {
+      miscWrap.classList.add('zero');
+      miscEl.textContent = formatGHS(0);
+    } else {
+      miscWrap.classList.remove('zero');
+      const sign = miscellaneous > 0 ? '+' : '−';
+      miscEl.textContent = sign + ' ' + formatGHS(Math.abs(miscellaneous));
+      miscWrap.classList.toggle('positive', miscellaneous > 0);
+      miscWrap.classList.toggle('negative', miscellaneous < 0);
+    }
+    document.getElementById('sumCollected').textContent = formatGHS(totalRounded);
 
     const list = document.getElementById('splitList');
     list.innerHTML = '';
 
     tenants.forEach(t => {
       const periodLine = period ? `for ${period} ` : '';
+      // Use the ROUNDED amount in SMS — what they actually pay
       const smsText =
 `Hi ${t.name.split(' ')[0]}, here's your water bill ${periodLine}breakdown:
 
 Total bill: ${formatGHS(bill)}
-Your share: ${formatGHS(t.share)}
-(${t.people} ${t.people === 1 ? 'person' : 'people'} × ${formatGHS(perPerson)}/person)
+Your share: ${formatGHS(t.rounded)}
+(${t.people} ${t.people === 1 ? 'person' : 'people'} × ${formatGHS(perPerson)}/person ≈ ${formatGHS(t.share)}, rounded to ${formatGHS(t.rounded)})
 
 Kindly settle when you can. Thanks!`;
 
       const cleanPhone = t.phone.replace(/\s+/g, '');
       const encoded = encodeURIComponent(smsText);
+
+      // Build the amount display: show rounded big, with ~ original below if different
+      const adjShows = Math.abs(t.adjustment) >= 0.005;
+      const adjLabel = adjShows
+        ? `<div class="adj ${t.adjustment > 0 ? 'pos' : 'neg'}">~ ${formatGHS(t.share)} <span class="adj-tag">${t.adjustment > 0 ? '+' : '−'}${formatGHS(Math.abs(t.adjustment)).replace('GH₵ ', '')}</span></div>`
+        : '';
 
       const item = document.createElement('div');
       item.className = 'split-item';
@@ -799,7 +1161,8 @@ Kindly settle when you can. Thanks!`;
           <div class="breakdown">${t.people} ${t.people === 1 ? 'person' : 'people'} · ${t.pct.toFixed(1)}% of bill</div>
         </div>
         <div class="amount-block">
-          <div class="amt">${formatGHS(t.share)}</div>
+          <div class="amt">${formatGHS(t.rounded)}</div>
+          ${adjLabel}
           <div class="pct">${t.pct.toFixed(1)}%</div>
         </div>
         <div class="sms-preview">${escapeHtml(smsText)}</div>
@@ -893,7 +1256,7 @@ Kindly settle when you can. Thanks!`;
     const periodLine = lastSplit.period ? `Billing period: ${lastSplit.period}` : 'Monthly water bill';
     doc.text(periodLine, marginX, y);
 
-    // Summary box
+    // Summary box (2 rows, 3 cols + misc row)
     y += 30;
     doc.setDrawColor(26, 25, 21);
     doc.setLineWidth(1);
@@ -927,7 +1290,50 @@ Kindly settle when you can. Thanks!`;
       }
     });
 
-    y += 100;
+    y += 80;
+
+    // Second summary row: Total Collected + Miscellaneous
+    doc.setDrawColor(26, 25, 21);
+    doc.setLineWidth(1);
+    doc.rect(marginX, y, pageW - marginX * 2, 60);
+
+    const colW2 = (pageW - marginX * 2) / 2;
+    const misc = lastSplit.miscellaneous;
+    const miscSign = Math.abs(misc) < 0.005 ? '' : (misc > 0 ? '+ ' : '− ');
+    const miscDisplay = miscSign + formatGHS(Math.abs(misc));
+
+    // Total Collected
+    doc.setFontSize(8);
+    doc.setTextColor(74, 71, 64);
+    doc.setFont('helvetica', 'normal');
+    doc.text('TOTAL COLLECTED (ROUNDED)', marginX + colW2 / 2, y + 20, { align: 'center' });
+    doc.setFontSize(18);
+    doc.setTextColor(26, 25, 21);
+    doc.setFont('times', 'normal');
+    doc.text(formatGHS(lastSplit.totalRounded), marginX + colW2 / 2, y + 42, { align: 'center' });
+
+    // Divider
+    doc.setDrawColor(26, 25, 21);
+    doc.setLineWidth(0.3);
+    doc.line(marginX + colW2, y + 10, marginX + colW2, y + 50);
+
+    // Miscellaneous
+    doc.setFontSize(8);
+    doc.setTextColor(74, 71, 64);
+    doc.setFont('helvetica', 'normal');
+    doc.text('~ MISCELLANEOUS  (SURPLUS / SHORTFALL)', marginX + colW2 + colW2 / 2, y + 20, { align: 'center' });
+    doc.setFontSize(18);
+    if (Math.abs(misc) < 0.005) {
+      doc.setTextColor(74, 71, 64);
+    } else if (misc > 0) {
+      doc.setTextColor(45, 106, 63); // green
+    } else {
+      doc.setTextColor(194, 65, 12); // accent
+    }
+    doc.setFont('times', 'normal');
+    doc.text(miscDisplay, marginX + colW2 + colW2 / 2, y + 42, { align: 'center' });
+
+    y += 90;
 
     // Section header: The Split
     doc.setFont('times', 'normal');
@@ -979,16 +1385,25 @@ Kindly settle when you can. Thanks!`;
       const peopleTxt = `${t.people} ${t.people === 1 ? 'person' : 'people'}  ·  ${t.pct.toFixed(1)}% of bill`;
       doc.text(peopleTxt, marginX + 36, y + 48);
 
-      // Amount (right-aligned)
+      // Amount (right-aligned) — rounded payable
       doc.setFont('times', 'normal');
       doc.setFontSize(22);
       doc.setTextColor(20, 59, 104);
-      doc.text(formatGHS(t.share), pageW - marginX - 12, y + 30, { align: 'right' });
+      doc.text(formatGHS(t.rounded), pageW - marginX - 12, y + 26, { align: 'right' });
+
+      // Original (with ~) below if adjusted
+      if (Math.abs(t.adjustment) >= 0.005) {
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(8);
+        doc.setTextColor(74, 71, 64);
+        const adjStr = `~ ${formatGHS(t.share)}  (${t.adjustment > 0 ? '+' : '−'}${formatGHS(Math.abs(t.adjustment)).replace('GH₵ ', '')})`;
+        doc.text(adjStr, pageW - marginX - 12, y + 40, { align: 'right' });
+      }
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       doc.setTextColor(74, 71, 64);
-      doc.text(`${t.pct.toFixed(1)}%`, pageW - marginX - 12, y + 44, { align: 'right' });
+      doc.text(`${t.pct.toFixed(1)}%`, pageW - marginX - 12, y + 50, { align: 'right' });
 
       y += 68;
     });
@@ -1003,8 +1418,8 @@ Kindly settle when you can. Thanks!`;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor(26, 25, 21);
-    doc.text('SUM OF SHARES', marginX, y);
-    const sumShares = lastSplit.tenants.reduce((s, t) => s + t.share, 0);
+    doc.text('SUM OF ROUNDED SHARES', marginX, y);
+    const sumShares = lastSplit.tenants.reduce((s, t) => s + t.rounded, 0);
     doc.setFont('times', 'normal');
     doc.setFontSize(14);
     doc.text(formatGHS(sumShares), pageW - marginX, y, { align: 'right' });
@@ -1061,6 +1476,262 @@ Kindly settle when you can. Thanks!`;
     setTimeout(() => URL.revokeObjectURL(url), 60000);
     alert('Sharing not supported in this browser. The PDF has opened in a new tab — download and share it from there.');
   });
+
+  // ---------- History ----------
+  function renderHistory() {
+    const container = document.getElementById('historyContent');
+    const meta = document.getElementById('historyCountMeta');
+    const entries = store.history || [];
+    meta.textContent = entries.length === 1 ? '1 entry' : `${entries.length} entries`;
+
+    if (entries.length === 0) {
+      container.innerHTML = '<div class="history-empty">No past splits yet — saved bills will appear here.</div>';
+      return;
+    }
+
+    // Show newest first
+    const sorted = [...entries].sort((a, b) => b.savedAt - a.savedAt);
+
+    const list = document.createElement('div');
+    list.className = 'history-list';
+    sorted.forEach((entry, displayIdx) => {
+      const item = document.createElement('div');
+      item.className = 'history-item';
+
+      const dateLabel = new Date(entry.savedAt).toLocaleDateString('en-GB', {
+        day: '2-digit', month: 'short', year: 'numeric'
+      });
+      const periodLabel = entry.period || 'Unlabeled period';
+      const tCount = entry.tenants.length;
+      const headcount = entry.totalPeople;
+
+      const miscClass = Math.abs(entry.miscellaneous) < 0.005 ? 'zero'
+                       : entry.miscellaneous > 0 ? 'pos' : 'neg';
+      const miscSign = Math.abs(entry.miscellaneous) < 0.005 ? '±'
+                      : entry.miscellaneous > 0 ? '+' : '−';
+      const miscDisplay = `${miscSign} ${formatGHS(Math.abs(entry.miscellaneous)).replace('GH₵ ', '')}`;
+
+      item.innerHTML = `
+        <div class="h-num">${String(displayIdx + 1).padStart(2, '0')}</div>
+        <div>
+          <div class="h-head">${escapeHtml(periodLabel)}</div>
+          <div class="h-meta">${dateLabel} · ${tCount} ${tCount === 1 ? 'tenant' : 'tenants'} · ${headcount} ${headcount === 1 ? 'person' : 'people'}</div>
+        </div>
+        <div>
+          <div class="h-amt">${formatGHS(entry.bill)}</div>
+          <div class="h-misc ${miscClass}">~ ${miscDisplay}</div>
+        </div>
+        <div class="h-actions">
+          <button class="icon-btn" data-act="open" data-id="${entry.id}" title="Reopen this split">↗</button>
+          <button class="icon-btn danger" data-act="delete" data-id="${entry.id}" title="Delete this entry">×</button>
+        </div>
+      `;
+      list.appendChild(item);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(list);
+
+    // Wire up actions
+    list.querySelectorAll('.icon-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const act = btn.dataset.act;
+        if (act === 'open') reopenHistoryEntry(id);
+        else if (act === 'delete') confirmDeleteHistoryEntry(id);
+      });
+    });
+  }
+
+  function saveCurrentToHistory() {
+    if (!lastSplit) {
+      alert('No split to save yet — generate one first.');
+      return;
+    }
+    // Avoid duplicate save of the same computation
+    const entry = {
+      id: 'h_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      savedAt: Date.now(),
+      period: lastSplit.period || '',
+      bill: lastSplit.bill,
+      totalPeople: lastSplit.totalPeople,
+      perPerson: lastSplit.perPerson,
+      miscellaneous: lastSplit.miscellaneous,
+      totalRounded: lastSplit.totalRounded,
+      tenants: lastSplit.tenants.map(t => ({
+        name: t.name, phone: t.phone, people: t.people,
+        share: t.share, rounded: t.rounded, adjustment: t.adjustment, pct: t.pct
+      }))
+    };
+    store.history = store.history || [];
+    store.history.push(entry);
+    saveStore(store);
+    renderHistory();
+    flashSaveStatus('★ Added to history');
+  }
+
+  function reopenHistoryEntry(id) {
+    const entry = (store.history || []).find(e => e.id === id);
+    if (!entry) return;
+
+    // Restore the lastSplit shape
+    lastSplit = {
+      bill: entry.bill,
+      totalPeople: entry.totalPeople,
+      perPerson: entry.perPerson,
+      tenants: entry.tenants,
+      period: entry.period,
+      miscellaneous: entry.miscellaneous,
+      totalRounded: entry.totalRounded,
+      generatedAt: new Date(entry.savedAt)
+    };
+
+    // Restore inputs
+    document.getElementById('billAmount').value = entry.bill;
+    document.getElementById('billPeriod').value = entry.period || '';
+
+    // Restore tenant rows
+    tenantsList.innerHTML = '';
+    entry.tenants.forEach(t => addTenantRow(t));
+
+    // Re-render results
+    renderResults(entry.bill, entry.totalPeople, entry.perPerson, entry.tenants, entry.period, entry.miscellaneous, entry.totalRounded);
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function confirmDeleteHistoryEntry(id) {
+    const entry = (store.history || []).find(e => e.id === id);
+    if (!entry) return;
+    showModal({
+      title: 'Delete this entry?',
+      body: `This will remove the split for "${entry.period || 'unlabeled'}" (${formatGHS(entry.bill)}) from your history. This cannot be undone.`,
+      confirmText: 'Delete',
+      onConfirm: () => {
+        store.history = store.history.filter(e => e.id !== id);
+        saveStore(store);
+        renderHistory();
+      }
+    });
+  }
+
+  document.getElementById('saveToHistoryBtn').addEventListener('click', saveCurrentToHistory);
+
+  // ---------- Export / Import ----------
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const data = JSON.stringify({
+      app: 'water-bill-splitter',
+      version: STORAGE_VERSION,
+      exportedAt: new Date().toISOString(),
+      tenants: store.tenants || [],
+      history: store.history || []
+    }, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `water-bill-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    flashSaveStatus('⬇ Exported');
+  });
+
+  document.getElementById('importBtn').addEventListener('click', () => {
+    document.getElementById('importFile').click();
+  });
+
+  document.getElementById('importFile').addEventListener('change', (ev) => {
+    const file = ev.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.app !== 'water-bill-splitter') {
+          throw new Error('This does not look like a water-bill-splitter backup file.');
+        }
+        const importedTenants = Array.isArray(data.tenants) ? data.tenants : [];
+        const importedHistory = Array.isArray(data.history) ? data.history : [];
+
+        showModal({
+          title: 'Import this backup?',
+          body: `Found ${importedTenants.length} tenant${importedTenants.length === 1 ? '' : 's'} and ${importedHistory.length} history ${importedHistory.length === 1 ? 'entry' : 'entries'}. This will REPLACE your current saved data.`,
+          confirmText: 'Import & Replace',
+          onConfirm: () => {
+            store.tenants = importedTenants;
+            store.history = importedHistory;
+            saveStore(store);
+            // Reload tenant rows
+            tenantsList.innerHTML = '';
+            if (importedTenants.length > 0) {
+              importedTenants.forEach(t => addTenantRow(t));
+            } else {
+              addTenantRow();
+              addTenantRow();
+            }
+            renderHistory();
+            flashSaveStatus('⬆ Imported');
+          }
+        });
+      } catch (err) {
+        alert('Could not import: ' + err.message);
+      } finally {
+        ev.target.value = ''; // reset so same file can be re-picked
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------- Clear All ----------
+  document.getElementById('clearAllBtn').addEventListener('click', () => {
+    showModal({
+      title: 'Clear all saved data?',
+      body: `This will permanently delete all saved tenants and history (${(store.history || []).length} entries). Consider exporting a backup first. This cannot be undone.`,
+      confirmText: 'Yes, clear everything',
+      danger: true,
+      onConfirm: () => {
+        localStorage.removeItem(STORAGE_KEY);
+        store = { version: STORAGE_VERSION, tenants: [], history: [] };
+        tenantsList.innerHTML = '';
+        addTenantRow();
+        addTenantRow();
+        document.getElementById('billAmount').value = '';
+        document.getElementById('billPeriod').value = '';
+        document.getElementById('results').classList.remove('visible');
+        lastSplit = null;
+        renderHistory();
+        flashSaveStatus('✕ Cleared');
+      }
+    });
+  });
+
+  // ---------- Modal ----------
+  let pendingConfirm = null;
+  function showModal({ title, body, confirmText = 'Confirm', danger = false, onConfirm }) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalBody').textContent = body;
+    const confirmBtn = document.getElementById('modalConfirm');
+    confirmBtn.textContent = confirmText;
+    confirmBtn.classList.toggle('danger', danger);
+    pendingConfirm = onConfirm;
+    document.getElementById('modalBackdrop').classList.add('visible');
+  }
+  function hideModal() {
+    document.getElementById('modalBackdrop').classList.remove('visible');
+    pendingConfirm = null;
+  }
+  document.getElementById('modalCancel').addEventListener('click', hideModal);
+  document.getElementById('modalConfirm').addEventListener('click', () => {
+    if (pendingConfirm) pendingConfirm();
+    hideModal();
+  });
+  document.getElementById('modalBackdrop').addEventListener('click', (e) => {
+    if (e.target.id === 'modalBackdrop') hideModal();
+  });
+
+  // Initial render of history
+  renderHistory();
 </script>
 </body>
 </html>
