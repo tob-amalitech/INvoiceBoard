@@ -1015,6 +1015,17 @@
     return 'GH₵ ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
+  // PDF-safe formatter: jsPDF's built-in fonts (Helvetica, Times) only support
+  // basic Latin (Windows-1252). The ₵ symbol and locale-formatted commas don't
+  // render correctly. Use plain ASCII: "GHS 1,234.50".
+  function formatGHSPdf(n) {
+    const fixed = Math.abs(n).toFixed(2);
+    const [intPart, decPart] = fixed.split('.');
+    const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const sign = n < 0 ? '-' : '';
+    return `${sign}GHS ${withCommas}.${decPart}`;
+  }
+
   // Rounds a tenant's share to a friendly cash-denomination amount per landlord's rule:
   //  - Clean multiples of 5 (90.00, 95.00) → keep as-is
   //  - Exact .5 on a multiple of 5 (90.50, 95.50, 100.50) → round DOWN to that 5
@@ -1234,9 +1245,9 @@ Kindly settle when you can. Thanks!`;
     }).toUpperCase();
     doc.text(dateStr, marginX, y - 6);
     doc.setTextColor(194, 65, 12);
-    doc.text('HOUSEHOLD LEDGER · No. 01', pageW / 2, y - 6, { align: 'center' });
+    doc.text('HOUSEHOLD LEDGER  -  No. 01', pageW / 2, y - 6, { align: 'center' });
     doc.setTextColor(74, 71, 64);
-    doc.text('WATER · MONTHLY', pageW - marginX, y - 6, { align: 'right' });
+    doc.text('WATER  -  MONTHLY', pageW - marginX, y - 6, { align: 'right' });
 
     doc.setLineWidth(0.5);
     doc.line(marginX, y, pageW - marginX, y);
@@ -1265,9 +1276,9 @@ Kindly settle when you can. Thanks!`;
     const colW = (pageW - marginX * 2) / 3;
     const labels = ['TOTAL BILL', 'TOTAL OCCUPANTS', 'RATE / PERSON'];
     const values = [
-      formatGHS(lastSplit.bill),
+      formatGHSPdf(lastSplit.bill),
       String(lastSplit.totalPeople),
-      formatGHS(lastSplit.perPerson)
+      formatGHSPdf(lastSplit.perPerson)
     ];
 
     labels.forEach((lbl, i) => {
@@ -1277,7 +1288,7 @@ Kindly settle when you can. Thanks!`;
       doc.setFont('helvetica', 'normal');
       doc.text(lbl, cx, y + 22, { align: 'center' });
 
-      doc.setFontSize(18);
+      doc.setFontSize(16);
       doc.setTextColor(i === 2 ? 20 : 26, i === 2 ? 59 : 25, i === 2 ? 104 : 21);
       doc.setFont('times', 'normal');
       doc.text(values[i], cx, y + 48, { align: 'center' });
@@ -1299,18 +1310,18 @@ Kindly settle when you can. Thanks!`;
 
     const colW2 = (pageW - marginX * 2) / 2;
     const misc = lastSplit.miscellaneous;
-    const miscSign = Math.abs(misc) < 0.005 ? '' : (misc > 0 ? '+ ' : '− ');
-    const miscDisplay = miscSign + formatGHS(Math.abs(misc));
+    const miscSign = Math.abs(misc) < 0.005 ? '' : (misc > 0 ? '+ ' : '- ');
+    const miscDisplay = miscSign + formatGHSPdf(Math.abs(misc));
 
     // Total Collected
     doc.setFontSize(8);
     doc.setTextColor(74, 71, 64);
     doc.setFont('helvetica', 'normal');
     doc.text('TOTAL COLLECTED (ROUNDED)', marginX + colW2 / 2, y + 20, { align: 'center' });
-    doc.setFontSize(18);
+    doc.setFontSize(16);
     doc.setTextColor(26, 25, 21);
     doc.setFont('times', 'normal');
-    doc.text(formatGHS(lastSplit.totalRounded), marginX + colW2 / 2, y + 42, { align: 'center' });
+    doc.text(formatGHSPdf(lastSplit.totalRounded), marginX + colW2 / 2, y + 42, { align: 'center' });
 
     // Divider
     doc.setDrawColor(26, 25, 21);
@@ -1322,7 +1333,7 @@ Kindly settle when you can. Thanks!`;
     doc.setTextColor(74, 71, 64);
     doc.setFont('helvetica', 'normal');
     doc.text('~ MISCELLANEOUS  (SURPLUS / SHORTFALL)', marginX + colW2 + colW2 / 2, y + 20, { align: 'center' });
-    doc.setFontSize(18);
+    doc.setFontSize(16);
     if (Math.abs(misc) < 0.005) {
       doc.setTextColor(74, 71, 64);
     } else if (misc > 0) {
@@ -1342,7 +1353,7 @@ Kindly settle when you can. Thanks!`;
     doc.text('The Split', marginX, y);
     doc.setFontSize(8);
     doc.setTextColor(74, 71, 64);
-    doc.text('PROPORTIONAL · BY HEADCOUNT', pageW - marginX, y, { align: 'right' });
+    doc.text('PROPORTIONAL  -  BY HEADCOUNT', pageW - marginX, y, { align: 'right' });
 
     y += 6;
     doc.setDrawColor(26, 25, 21);
@@ -1382,21 +1393,22 @@ Kindly settle when you can. Thanks!`;
 
       // Breakdown
       doc.setFontSize(8);
-      const peopleTxt = `${t.people} ${t.people === 1 ? 'person' : 'people'}  ·  ${t.pct.toFixed(1)}% of bill`;
+      const peopleTxt = `${t.people} ${t.people === 1 ? 'person' : 'people'}  -  ${t.pct.toFixed(1)}% of bill`;
       doc.text(peopleTxt, marginX + 36, y + 48);
 
       // Amount (right-aligned) — rounded payable
       doc.setFont('times', 'normal');
-      doc.setFontSize(22);
+      doc.setFontSize(18);
       doc.setTextColor(20, 59, 104);
-      doc.text(formatGHS(t.rounded), pageW - marginX - 12, y + 26, { align: 'right' });
+      doc.text(formatGHSPdf(t.rounded), pageW - marginX - 12, y + 26, { align: 'right' });
 
       // Original (with ~) below if adjusted
       if (Math.abs(t.adjustment) >= 0.005) {
         doc.setFont('helvetica', 'italic');
         doc.setFontSize(8);
         doc.setTextColor(74, 71, 64);
-        const adjStr = `~ ${formatGHS(t.share)}  (${t.adjustment > 0 ? '+' : '−'}${formatGHS(Math.abs(t.adjustment)).replace('GH₵ ', '')})`;
+        const adjAmt = Math.abs(t.adjustment).toFixed(2);
+        const adjStr = `~ ${formatGHSPdf(t.share)}  (${t.adjustment > 0 ? '+' : '-'}${adjAmt})`;
         doc.text(adjStr, pageW - marginX - 12, y + 40, { align: 'right' });
       }
 
@@ -1422,7 +1434,7 @@ Kindly settle when you can. Thanks!`;
     const sumShares = lastSplit.tenants.reduce((s, t) => s + t.rounded, 0);
     doc.setFont('times', 'normal');
     doc.setFontSize(14);
-    doc.text(formatGHS(sumShares), pageW - marginX, y, { align: 'right' });
+    doc.text(formatGHSPdf(sumShares), pageW - marginX, y, { align: 'right' });
 
     // Footer
     const footerY = doc.internal.pageSize.getHeight() - 40;
